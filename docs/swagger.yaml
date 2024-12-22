@@ -1,0 +1,854 @@
+definitions:
+  handlers.Login:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  handlers.Register:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  handlers.changeStepOrder:
+    properties:
+      step_id:
+        type: integer
+      step_order:
+        type: integer
+    type: object
+  handlers.createIngredient:
+    properties:
+      amount:
+        type: integer
+      amount_type:
+        $ref: '#/definitions/models.IngredientAmountType'
+      name:
+        type: string
+    required:
+    - amount
+    - name
+    type: object
+  handlers.createStep:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      step_order:
+        type: integer
+      time_to_cook:
+        minimum: 0
+        type: integer
+    required:
+    - description
+    - name
+    type: object
+  handlers.recepieCreate:
+    properties:
+      name:
+        type: string
+      time_to_cook:
+        minimum: 0
+        type: integer
+    required:
+    - name
+    type: object
+  handlers.recepieEdit:
+    properties:
+      name:
+        type: string
+      time_to_cook:
+        minimum: 0
+        type: integer
+    required:
+    - name
+    type: object
+  handlers.updateIngredient:
+    properties:
+      amount:
+        type: integer
+      amount_type:
+        $ref: '#/definitions/models.IngredientAmountType'
+      name:
+        type: string
+    required:
+    - amount
+    - name
+    type: object
+  handlers.updateStep:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      step_order:
+        type: integer
+      time_to_cook:
+        minimum: 0
+        type: integer
+    required:
+    - description
+    - name
+    type: object
+  models.Ingredient:
+    properties:
+      amount:
+        type: integer
+      amount_type:
+        $ref: '#/definitions/models.IngredientAmountType'
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.IngredientAmountType:
+    enum:
+    - amount
+    - gramms
+    type: string
+    x-enum-varnames:
+    - PIECES
+    - GRAMMS
+  models.Recepie:
+    properties:
+      author:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      time_to_cook:
+        type: integer
+    type: object
+  models.Step:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      step_order:
+        type: integer
+      time_to_cook:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  models.User:
+    properties:
+      id:
+        type: integer
+      username:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login
+      operationId: login-user
+      parameters:
+      - description: User credentials
+        in: body
+        name: id
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.Login'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Set-Cookie:
+              description: sid=
+              type: string
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Login an User
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Logout, delete session
+      operationId: logout-user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Set-Cookie:
+              description: sid=; Max-Age=0;
+              type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      security:
+      - CookieSID: []
+      summary: Logout an User
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: register
+      operationId: register-user
+      parameters:
+      - description: New user
+        in: body
+        name: id
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.Register'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Recepie'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            type: string
+      summary: Register an User
+      tags:
+      - Auth
+  /recepie:
+    get:
+      consumes:
+      - application/json
+      description: get all Recepies
+      parameters:
+      - description: offset
+        in: query
+        name: offset
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Recepie'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Get all Recepies
+      tags:
+      - Recepie
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Recepie name
+        in: body
+        name: recepie
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.recepieCreate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Recepie'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      security:
+      - CookieSID: []
+      summary: Create an Recepie
+      tags:
+      - Recepie
+  /recepie/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete by ID
+      operationId: delete-by-int
+      parameters:
+      - description: Recepie ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: boject
+        "403":
+          description: Forbidden
+          schema:
+            type: boject
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      security:
+      - CookieSID: []
+      summary: Delete an Recepie
+      tags:
+      - Recepie
+    get:
+      consumes:
+      - application/json
+      description: get by ID
+      operationId: get-by-int
+      parameters:
+      - description: Recepie ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Recepie'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Show an Recepie
+      tags:
+      - Recepie
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Recepie name
+        in: body
+        name: recepie
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.recepieEdit'
+      - description: Recepie ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Recepie'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: boject
+        "403":
+          description: Forbidden
+          schema:
+            type: boject
+      security:
+      - CookieSID: []
+      summary: Update an Recepie
+      tags:
+      - Recepie
+  /recepie/{recepie_id}/ingredient:
+    get:
+      consumes:
+      - application/json
+      description: get all Recepie Ingredients
+      parameters:
+      - description: offset
+        in: query
+        name: offset
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      - description: Recepie ID
+        in: path
+        name: recepie_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Ingredient'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Get all Ingredients
+      tags:
+      - Recepie/Ingredient
+  /recepie/{recepie_id}/ingredient/:
+    post:
+      consumes:
+      - application/json
+      description: create Recepie Ingredient
+      parameters:
+      - description: Recepie ID
+        in: path
+        name: recepie_id
+        required: true
+        type: integer
+      - description: Ingredient
+        in: body
+        name: ingredient
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.createIngredient'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Ingredient'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Create Ingredient
+      tags:
+      - Recepie/Ingredient
+  /recepie/{recepie_id}/ingredient/{ingredient_id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete Recepie Ingredient
+      parameters:
+      - description: Recepie ID
+        in: path
+        name: recepie_id
+        required: true
+        type: integer
+      - description: Recepie ID
+        in: path
+        name: ingredient_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Ingredient'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: Forbidden
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Delete Ingredient
+      tags:
+      - Recepie/Ingredient
+    get:
+      consumes:
+      - application/json
+      description: get Recepie Ingredient by ID
+      parameters:
+      - description: Recepie ID
+        in: path
+        name: recepie_id
+        required: true
+        type: integer
+      - description: Ingredient ID
+        in: path
+        name: ingredient_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Ingredient'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Get Ingredient
+      tags:
+      - Recepie/Ingredient
+    put:
+      consumes:
+      - application/json
+      description: update Recepie Ingredient
+      parameters:
+      - description: Recepie ID
+        in: path
+        name: recepie_id
+        required: true
+        type: integer
+      - description: Recepie ID
+        in: path
+        name: ingredient_id
+        required: true
+        type: integer
+      - description: Ingredient
+        in: body
+        name: ingredient
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.updateIngredient'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Ingredient'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: Forbidden
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Update Ingredient
+      tags:
+      - Recepie/Ingredient
+  /recepie/{recepie_id}/step:
+    get:
+      consumes:
+      - application/json
+      description: get all Recepie Steps
+      parameters:
+      - description: offset
+        in: query
+        name: offset
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      - description: Recepie ID
+        in: path
+        name: recepie_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Step'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Get all Steps
+      tags:
+      - Recepie/Step
+    post:
+      consumes:
+      - application/json
+      description: get Recepie Step
+      parameters:
+      - description: Recepie ID
+        in: path
+        name: recepie_id
+        required: true
+        type: integer
+      - description: Recepie ID
+        in: body
+        name: step
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.createStep'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Step'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Create Recepie Step
+      tags:
+      - Recepie/Step
+    put:
+      consumes:
+      - application/json
+      description: Change order
+      parameters:
+      - description: Recepie ID
+        in: path
+        name: recepie_id
+        required: true
+        type: integer
+      - description: New Order
+        in: body
+        name: new_order
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.changeStepOrder'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: Forbidden
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Change Recepie Step order
+      tags:
+      - Recepie/Step
+  /recepie/{recepie_id}/step/{step_id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete Recepie Step
+      parameters:
+      - description: Recepie ID
+        in: path
+        name: recepie_id
+        required: true
+        type: integer
+      - description: Step ID
+        in: path
+        name: step_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: Forbidden
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Delete Recepie Step
+      tags:
+      - Recepie/Step
+    get:
+      consumes:
+      - application/json
+      description: get Recepie Step
+      parameters:
+      - description: Recepie ID
+        in: path
+        name: recepie_id
+        required: true
+        type: integer
+      - description: Recepie ID
+        in: path
+        name: step_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Step'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Get Recepie Step
+      tags:
+      - Recepie/Step
+    put:
+      consumes:
+      - application/json
+      description: update Recepie Step
+      parameters:
+      - description: Recepie ID
+        in: path
+        name: recepie_id
+        required: true
+        type: integer
+      - description: Step ID
+        in: path
+        name: step_id
+        required: true
+        type: integer
+      - description: Recepie ID
+        in: body
+        name: step
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.updateStep'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Step'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: Forbidden
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Update Recepie Step
+      tags:
+      - Recepie/Step
+securityDefinitions:
+  CookieSID:
+    in: cookie
+    name: sid
+    type: apiKey
+swagger: "2.0"
